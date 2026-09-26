@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>消化クエスト｜中2理科 消化と吸収</title>
+<meta name="description" content="中学2年 理科 単元2-3「消化と吸収」。口・食道・胃・小腸・大腸の7つの章を、ドット絵RPG風のミニゲームで進みながら、消化酵素のはたらきと吸収のしくみをたどる教材。">
+<meta property="og:title" content="消化クエスト ～黄金のブドウ糖を求めて～">
+<meta property="og:description" content="かむ、まぜる、流しこむ、吸収する。消化管を1本の道として進む 中2理科 消化と吸収のRPG教材。">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 38'%3E%3Cpolygon points='17,1 33,10 33,28 17,37 1,28 1,10' fill='%23f2c33c'/%3E%3Cpolygon points='17,6 27,12 27,20 17,26 7,20 7,12' fill='%23ffe9a8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#2b1b3d; --paper:#f6e6c2; --paper2:#e8d3a6;
+  --gold:#f2c33c; --goldd:#c9963c;
+  --grn:#4fae5a; --grnd:#2f7a3a; --grnl:#8ed69a;
+  --sal:#7fd4f2; --sald:#3fa8d6;
+  --red:#d44a5a; --bg:#120a1c;
+  --font:'DotGothic16','ＭＳ ゴシック',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{text-wrap:pretty;word-break:auto-phrase}
+b,strong,.word{word-break:keep-all;overflow-wrap:anywhere}
+html,body{height:100%}
+body{
+  background:var(--bg); font-family:var(--font); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden; image-rendering:pixelated;
+}
+#wrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+#app{
+  width:500px;height:666px;flex:none;position:relative;overflow:hidden;
+  background:#1d1030; transform-origin:center center;
+  box-shadow:0 0 0 4px #2b1b3d;
+}
+.screen{position:absolute;inset:0;display:none}
+.screen.on{display:block}
+.center{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:18px;padding:24px}
+
+/* ---- 共通パーツ ---- */
+.btn{
+  display:inline-block;cursor:pointer;user-select:none;
+  background:#3a2350;border:4px solid var(--ink);
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.35), 0 4px 0 var(--ink);
+  color:#fff;padding:12px 24px;font-size:17px;letter-spacing:1px;
+  text-align:center;
+}
+.btn:active{transform:translateY(3px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.35),0 1px 0 var(--ink)}
+.btn.gold{background:var(--goldd);color:#2b1b3d;text-shadow:0 1px 0 rgba(255,255,255,.35)}
+.msgbox{
+  background:#fffdf5;border:4px solid var(--ink);color:var(--ink);
+  box-shadow:0 4px 0 var(--ink); padding:14px 16px; line-height:1.75; font-size:15px;
+}
+.plate{
+  background:var(--ink);border:4px solid var(--gold);color:var(--gold);
+  padding:8px 20px;font-size:22px;letter-spacing:3px;
+}
+.hint{font-size:12px;color:#c8b6e0;line-height:1.7;text-align:center}
+.org{color:#ffd84d}
+
+/* ---- 音えらび / タイトル ---- */
+#s-sound .lead{font-size:15px;line-height:1.9;text-align:center;color:#e8dcff}
+.logo{text-align:center}
+.logo .l1{font-size:19px;color:var(--grnl);letter-spacing:4px}
+.logo .l2{font-size:42px;color:var(--gold);letter-spacing:4px;text-shadow:4px 4px 0 #6b4a10;line-height:1.2}
+.logo .l3{font-size:14px;color:#e8dcff;letter-spacing:2px;margin-top:6px}
+#s-title .center{background:#2a1640}
+
+/* ---- プロローグ / エピローグ ---- */
+#s-prologue,#s-epilogue{background:#08040f}
+.roll{position:absolute;left:0;right:0;padding:0 34px;font-size:15px;line-height:2.15;text-align:center;color:#e6dcff}
+.tap{position:absolute;bottom:12px;right:14px;font-size:11px;color:#8a7aa8}
+
+/* ---- キャラ選択 ---- */
+.charas{position:relative;width:420px;height:300px;display:flex;align-items:center;justify-content:center}
+.chara{
+  position:absolute;left:50%;top:0;transform:translateX(-50%);
+  width:260px;text-align:center;transition:opacity .18s;
+}
+.chara:not(.sel){display:none}
+.chara .nm{font-size:19px;color:var(--gold);margin-bottom:6px}
+.chara .ab{font-size:13px;line-height:1.8;color:#e4d8f7;margin-top:8px}
+.arrow{
+  position:absolute;top:118px;width:44px;height:52px;cursor:pointer;z-index:4;
+  display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;
+}
+.arrow.left{left:-6px} .arrow.right{right:-6px}
+.pager{font-size:14px;color:#c8b6e0}
+
+/* ---- ミッション / あそびかた ---- */
+#s-mission .center{background:#0b0610}
+#s-howto .center{gap:0;justify-content:flex-start;padding-top:22px}
+#s-howto .btn{position:absolute;left:50%;bottom:42px;transform:translateX(-50%)}
+.missiontitle{font-size:30px;color:var(--gold);text-shadow:3px 3px 0 #6b1020;letter-spacing:3px}
+/* 枠の絵は生成したもの。中に書ける場所は _import_ui.py で実測して padding にした */
+.board{
+  width:462px;height:580px;color:var(--ink);text-align:center;
+  padding:69px 66px 276px 64px;
+  background:url('assets/ui/board.png') center/462px 580px no-repeat;
+}
+.uibg{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.board p{font-size:14px;line-height:1.78}
+.howpic{width:300px;height:150px;display:block;margin:6px auto 0}
+.howpic2{position:relative;width:300px;height:150px;margin:6px auto 0;background:#fffdf5;
+  border:3px solid #8a5a2b;border-radius:8px;overflow:hidden}
+.howpic2 img{position:absolute}
+.howpic2 svg{position:absolute;inset:0;width:100%;height:100%}
+
+/* ---- ゲーム 共通 ---- */
+#s-game{background:#2a0c16}
+.tok{display:inline-block;vertical-align:middle;image-rendering:auto}
+#stagearea{position:absolute;inset:0;z-index:1}
+.hud{position:absolute;top:0;left:0;right:0;height:78px;z-index:6;pointer-events:none}
+.hud .uibg{position:absolute;inset:0;width:100%;height:100%}
+.badge{
+  position:absolute;top:6px;left:6px;width:116px;height:116px;color:#2b1b3d;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;
+}
+.badge .t{font-size:11px;position:relative;z-index:2}
+.badge .v{font-size:27px;position:relative;z-index:2;color:#c2182c}
+.clock{
+  position:absolute;top:8px;right:48px;width:108px;height:108px;color:#2b1b3d;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;
+}
+.clock .t{font-size:11px;position:relative;z-index:2}
+.clock .v{font-size:25px;position:relative;z-index:2;color:#c2182c}
+.clock .hg{position:absolute;top:-6px;right:-6px;z-index:3}
+.clock.warn .v{color:#e01030}
+.clock.off{display:none}
+#gauge{position:absolute;top:124px;left:50%;transform:translateX(-50%);width:300px;z-index:6;display:none}
+#gauge.on{display:block}
+#gauge .gcap{font-size:12px;color:#fff;text-align:center;text-shadow:2px 2px 0 var(--ink)}
+#gauge .gwrap{position:relative;margin-top:3px}
+#gauge .gbar{position:relative;height:24px;background:#cdbbe8;border:3px solid #fff;border-radius:12px;overflow:hidden}
+#gauge .gfill{position:absolute;left:0;top:0;bottom:0;width:28%;background:#8f6fd0;transition:width .25s}
+#gauge.done .gfill{background:#4fae5a}
+#gauge .gline{position:absolute;top:-5px;bottom:-5px;left:72%;width:4px;border-radius:2px;background:#fff;
+  box-shadow:0 0 0 1px rgba(43,27,61,.5)}
+#gauge .gclear{position:absolute;left:72%;transform:translateX(-50%);font-size:11.5px;color:#fff;
+  text-shadow:1px 1px 0 var(--ink)}
+#countdown{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(10,4,18,.6)}
+#countdown .n{font-size:96px;color:#fff;text-shadow:5px 5px 0 var(--ink)}
+#cheer{position:absolute;left:50%;top:300px;transform:translateX(-50%);z-index:10;font-size:17px;color:#fff;background:rgba(43,27,61,.9);border:3px solid #fff;padding:5px 14px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+.pop{position:absolute;z-index:8;font-size:14px;color:#fff;text-shadow:2px 2px 0 var(--ink);pointer-events:none;transition:transform .55s ease-out,opacity .55s}
+
+/* ---- 1 口 ---- */
+#macro{position:absolute;top:78px;left:0;right:0;height:250px;overflow:hidden}
+#macro .mouthbg{position:absolute;inset:0;background-image:url('assets/bg/kuchi.png');background-size:cover;background-position:center top}
+#lump{position:absolute;left:50%;top:52%;width:180px;height:120px;transform:translate(-50%,-50%);cursor:pointer;z-index:3;overflow:visible}
+.grain{position:absolute;width:17px;height:27px;transition:transform .18s ease-out;
+  background:url('assets/icon/rice.png') center/contain no-repeat}
+#macro .label{position:absolute;left:10px;bottom:6px;font-size:11px;color:#ffc9d2}
+#tapme{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:14px;color:#fff;background:rgba(0,0,0,.55);padding:4px 12px;border:2px solid #fff;z-index:4}
+#micro{position:absolute;top:328px;left:0;right:0;bottom:0;background:#120a1c;border-top:4px solid var(--ink)}
+#micro .cap{position:absolute;top:6px;left:10px;font-size:12px;color:#9ee0ad}
+#micro .cap b{color:var(--gold);font-weight:normal}
+#chainbox{position:absolute;top:34px;left:0;right:0;height:86px;overflow:hidden}
+#chain{position:absolute;left:14px;top:22px;display:flex;align-items:center;transition:left .18s ease-out}
+.hexw{width:34px;height:38px;position:relative}
+.bond{width:9px;height:7px;background:var(--grnd);align-self:center;flex:0 0 9px}
+#tray{position:absolute;left:0;right:0;top:128px;bottom:6px;border-top:2px dashed #3d2a58}
+#tray .tcap{position:absolute;top:4px;left:10px;font-size:12px;color:#ffd98a}
+#tray .tcap b{color:#ffd98a;font-weight:normal}
+#traywrap{position:absolute;left:10px;right:10px;top:26px;bottom:4px;display:flex;flex-wrap:wrap;align-content:flex-start;gap:4px;overflow:hidden}
+.malt{width:48px;height:22px;display:flex;align-items:center}
+.fly{position:absolute;z-index:9;pointer-events:none;transition:transform .45s cubic-bezier(.4,1.3,.6,1),opacity .45s}
+.drop{position:absolute;z-index:5;pointer-events:none}
+
+/* ---- 2 食道 ---- */
+#eso{position:absolute;inset:0}
+#eso.ngshake{animation:sh2 .3s}
+@keyframes sh2{0%,100%{transform:none}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+#esofood{position:absolute;left:50%;top:206px;transition:transform .45s cubic-bezier(.3,1.4,.6,1);filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
+#qbox{position:absolute;left:20px;right:20px;bottom:104px;background:#fffdf5;border:4px solid var(--ink);box-shadow:0 5px 0 var(--ink);color:var(--ink);padding:16px 14px 14px}
+#qbox.hide{visibility:hidden}
+#qtext{font-size:15px;line-height:1.85;text-align:center;min-height:56px;display:flex;align-items:center;justify-content:center;
+  text-wrap:balance}   /* 2行に わかれるとき 均等にして「は／」の区切りで 折る */
+.qbtns{display:flex;gap:14px;justify-content:center;margin-top:10px}
+.qb{width:150px;height:62px;background:var(--ink);color:#fff;font-size:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:3px solid var(--gold)}
+.qb:active{transform:translateY(3px)}
+#qres{position:absolute;left:0;right:0;top:128px;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none}
+#qres .qnext{margin-top:12px;pointer-events:auto}
+#qres.on{opacity:1}
+#qres .mark{font-size:110px;line-height:1;text-shadow:5px 5px 0 rgba(0,0,0,.4);
+  -webkit-text-stroke:5px #2b1b3d;paint-order:stroke fill}
+#qres.ok .mark{color:#ffe14d}
+#qres.ng .mark{color:#7fd4f2}
+#qres .wh{display:inline-block;margin-top:8px;background:rgba(43,27,61,.92);border:3px solid #fff;padding:8px 16px;font-size:15px;line-height:1.7;max-width:440px;text-wrap:balance}
+/* まちがえたときは 読むための画面。うしろの おにぎりを 暗い帯で かくし、印・解説・つぎへ を ひとまとまりに */
+#qres.ng{top:118px;padding:12px 0 18px;background:rgba(20,8,30,.86)}
+#qres.ng .mark{font-size:72px}
+
+/* ---- 3 胃 ---- */
+#gastro{position:absolute;inset:0;touch-action:none;cursor:ew-resize;user-select:none}
+#stwrap{position:absolute;left:50%;top:104px;width:334px;height:330px;margin-left:-167px;
+  transform-origin:50% 86%;transition:transform .1s}
+#stmc{position:absolute;left:0;top:0;width:334px;height:330px;pointer-events:none}
+.chunk{position:absolute;border-radius:50%;background:#b9744a;box-shadow:inset -3px -3px 0 rgba(0,0,0,.14);
+  transition:transform .18s ease-out;pointer-events:none}
+#knob{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);display:flex;align-items:center;gap:26px}
+#knob .k{width:44px;height:44px;border-radius:50%;background:#fff;border:4px solid var(--ink);box-shadow:0 4px 0 rgba(0,0,0,.3)}
+#knob .a{font-size:30px;color:#2b1b3d;text-shadow:2px 2px 0 rgba(255,255,255,.85)}
+.ghint{position:absolute;left:50%;bottom:48px;transform:translateX(-50%);font-size:13px;color:#fff;
+  background:rgba(43,27,61,.8);padding:4px 14px;border-radius:10px}
+.pop2{position:absolute;z-index:8;font-size:15px;color:#fff;text-shadow:2px 2px 0 #8a5a2b;pointer-events:none;transition:transform .6s ease-out,opacity .6s}
+
+/* ---- 4 小腸の入口 ---- */
+#duo{position:absolute;inset:0}
+#duoimg{position:absolute;left:6px;top:150px;width:489px;height:400px;pointer-events:none}
+.zone{position:absolute;cursor:pointer;border:3px dashed rgba(255,255,255,0);border-radius:14px;z-index:3}
+.zone span{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);font-size:12px;color:#fff;white-space:nowrap;background:rgba(43,27,61,.78);padding:2px 8px;border-radius:8px}
+.zone.lit{border-color:#ffe14d;background:rgba(255,225,77,.18);animation:lit 1s infinite}
+@keyframes lit{0%,100%{background:rgba(255,225,77,.12)}50%{background:rgba(255,225,77,.34)}}
+.zone.hit{animation:zh .18s}
+@keyframes zh{from{transform:scale(1.06)}to{transform:none}}
+#numbub{position:absolute;pointer-events:none;width:76px;height:76px;border-radius:50%;background:#fff;border:4px solid #e0342c;display:none;
+  flex-direction:column;align-items:center;justify-content:center;z-index:5;line-height:1}
+#numbub.on{display:flex}
+#numbub .n{font-size:34px;color:#e0342c}
+#numbub .c{font-size:11px;color:#8a5a2b;margin-top:2px}
+#duocap{position:absolute;left:50%;transform:translateX(-50%);bottom:26px;text-align:center;font-size:16px;
+  color:#fff;background:rgba(43,27,61,.8);padding:5px 18px;border-radius:11px;white-space:nowrap}
+#duocap b{color:#ffe14d;font-size:22px}
+#duocap span{font-size:13px;color:#b8f0ff}
+.brk{position:absolute;left:50%;top:300px;transform:translate(-50%,0);background:rgba(43,27,61,.92);border:3px solid #fff;
+  padding:8px 16px;font-size:15px;line-height:1.5;text-align:center;opacity:0;transition:.4s;z-index:9}
+.brk b{color:#ffe14d;font-weight:normal}
+
+/* ---- 5 柔毛 ---- */
+#villi{position:absolute;left:0;right:0;top:96px;bottom:0;touch-action:none;overflow:hidden}
+#villiimg{position:absolute;left:0;bottom:0;width:500px;height:498px;pointer-events:none}
+.tgt{position:absolute;top:196px;bottom:0;pointer-events:none;border-top:4px solid;border-radius:14px 14px 0 0}
+.tgt.cap{background:rgba(194,24,44,.3);border-color:#c2182c}
+.tgt.lym{background:rgba(201,162,39,.42);border-color:#c9a227}
+.tgt.hit{background:rgba(255,255,255,.55)}
+.refat{position:absolute;width:96px;text-align:center;z-index:6;pointer-events:none;opacity:0;
+  transform:scale(.5);transition:transform .35s ease-out,opacity .35s}
+.refat.in{opacity:1;transform:scale(1)}
+.refat.down{opacity:0;transform:translateY(130px) scale(.7);transition:transform .9s ease-in,opacity .9s ease-in}
+.refat span{display:block;margin-top:2px;font-size:12px;color:#fff;background:rgba(138,106,16,.95);
+  border-radius:9px;padding:2px 6px;white-space:nowrap}
+.tgt span{position:absolute;left:50%;top:-34px;transform:translateX(-50%);font-size:12px;color:#fff;
+  white-space:nowrap;padding:3px 9px;border-radius:9px;box-shadow:0 2px 0 rgba(0,0,0,.3)}
+.tgt.cap span{background:#c2182c}
+.tgt.lym span{background:#8a6a10}
+.nutri{position:absolute;width:98px;text-align:center;cursor:grab;z-index:4;user-select:none;touch-action:none;background:rgba(43,27,61,.72);border-radius:12px;padding:3px 0 4px}
+.nutri .nm{display:block;font-size:11px;color:#fff;margin-top:-2px;line-height:1.2;white-space:nowrap}
+.nutri.grab{cursor:grabbing;z-index:9;filter:drop-shadow(0 4px 6px rgba(0,0,0,.4))}
+.nutri.suck{transition:transform .4s,opacity .4s;transform:scale(.3);opacity:0}
+
+
+/* ---- 6 大腸 ---- */
+#colon{position:absolute;inset:0}
+#colon .grid{position:absolute;left:22px;right:22px;top:190px;display:flex;flex-wrap:wrap;
+  gap:18px 12px;justify-content:center}
+.hole{position:relative;width:140px;height:156px;cursor:pointer;
+  background:url('assets/icon/hole.png') center/contain no-repeat}
+.pup{position:absolute;left:50%;bottom:40px;transform:translate(-50%,24px);opacity:0;
+  transition:transform .18s,opacity .18s;z-index:2}
+.pup.up{transform:translate(-50%,-18px);opacity:1}
+.pup.gone{transform:translate(-50%,-56px) scale(.4);opacity:0}
+
+/* ---- 7 たからばこ ---- */
+#chest{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#chest .beam{position:absolute;left:50%;top:0;bottom:0;width:420px;margin-left:-210px;
+  background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,247,214,.85) 45%,rgba(255,255,255,0))}
+#chest .boxframe{position:absolute;left:50%;top:50%;transform:translate(-50%,-62%);width:364px;height:364px;
+  border:12px solid #8a5a2b;border-radius:16px;background:#fff8e0;overflow:hidden;
+  box-shadow:0 10px 0 #5e3c1c, inset 0 0 0 7px #c9963c}
+#chest .prizeimg{position:absolute;left:0;top:0;width:340px;height:340px}
+#chest .pn{position:absolute;left:0;right:0;bottom:0;padding:8px 0;text-align:center;font-size:18px;
+  color:#ffe9a8;background:rgba(43,27,61,.78)}
+#scr{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:340px;height:340px;cursor:crosshair;touch-action:none}
+#chest .rim{position:absolute;left:0;bottom:0;width:500px;height:150px}
+.shint{position:absolute;left:50%;bottom:166px;transform:translateX(-50%);font-size:14px;color:#2b1b3d;background:rgba(255,255,255,.8);padding:4px 12px;border:2px solid #8a5a2b}
+
+/* ---- リザルト ---- */
+#s-result{background:#2a1640}
+.kanban{width:430px;height:403px;padding:110px 59px 53px 57px;
+  background:url('assets/ui/kanban.png') center/430px 403px no-repeat}
+.kanban .hd{color:#8a2b3a;text-align:center;font-size:17px;letter-spacing:2px;margin-bottom:2px}
+.kanban .bd{color:var(--ink);text-align:center}
+.kanban .row{font-size:15px;line-height:1.85;opacity:0;transform:translateX(-14px);transition:.35s}
+.kanban .row.on{opacity:1;transform:none}
+.kanban .row b{font-size:24px;color:#a8312f;font-weight:normal}
+.kanban .row .hl{background:linear-gradient(transparent 60%,#ffe27a 60%)}
+
+/* ---- ぼうけんの書 ---- */
+#s-book{background:#1a0e2b}
+.scroll{
+  width:452px;height:560px;overflow:auto;color:var(--ink);
+  padding:30px 38px 26px 30px;
+  background:url('assets/ui/paper.png') center/100% 100% no-repeat;
+}
+.scroll.short{display:flex;flex-direction:column;justify-content:center}
+.scroll .part{text-align:center;font-size:13px;color:#8a5a2b;letter-spacing:3px}
+.scroll .ttl{text-align:center;font-size:19px;color:#a8312f;margin:5px 0 9px;line-height:1.45}
+.scroll .sum{font-size:15px;line-height:2.05}
+.scroll h4{font-size:14.5px;color:#a8312f;margin:9px 0 2px}
+.scroll .bd p{font-size:13.5px;line-height:1.78}
+.scroll .word{display:inline-block;background:#ffe27a;border:2px solid #8a5a2b;padding:0 6px;margin:0 2px}
+.scroll .src{margin-top:8px;font-size:11px;color:#8a6a45;text-align:right;line-height:1.5}
+
+/* ---- 会話 ---- */
+.talk{position:absolute;left:14px;right:14px;bottom:14px;display:flex;gap:10px;align-items:flex-end}
+.talk .who{flex:0 0 118px;text-align:center}
+.talk .who .nm{font-size:12px;color:var(--gold);margin-top:2px}
+.talk .msg{flex:1;background:#fffdf5;border:4px solid var(--ink);box-shadow:0 4px 0 var(--ink);color:var(--ink);padding:12px 14px;font-size:14px;line-height:1.9;min-height:96px}
+.talk .msg .next{float:right;font-size:11px;color:#6f5f86}
+#minimap{position:absolute;top:12px;right:12px;width:96px;height:96px;z-index:3}
+#s-move{background:#4a1020 url('assets/bg/michi1.png') center/cover no-repeat}
+#s-next{background:#2a1640 url('assets/bg/michi2.png') center/cover no-repeat}
+#s-next .center{background:rgba(10,5,18,.42)}
+
+/* ---- エンディング ---- */
+#s-ending{background:#160a24}
+#s-ending .center{gap:12px}
+.rankplate{background:var(--ink);border:5px solid var(--gold);padding:10px 28px;text-align:center}
+.rankplate .rk{font-size:15px;color:#e8dcff;letter-spacing:2px}
+.rankplate .rn{font-size:32px;color:var(--gold);letter-spacing:2px;text-shadow:3px 3px 0 #6b4a10}
+.ranklist{width:420px;background:var(--paper);color:var(--ink);border:4px solid var(--ink);padding:12px 16px;font-size:12.5px;line-height:1.85}
+.ranklist b{color:#a8312f;font-weight:normal}
+.ranklist .t{text-align:center;font-size:13px;color:#8a5a2b;margin-bottom:4px}
+
+/* ---- 右上のしまう ---- */
+#quit{position:absolute;top:0;right:0;z-index:40;width:46px;height:46px;display:none;
+  align-items:center;justify-content:center;font-size:20px;color:var(--gold);cursor:pointer;
+  background:radial-gradient(circle at 50% 50%, rgba(43,27,61,.9) 15px, transparent 16px)}
+#quit.on{display:flex}
+#quitask{position:absolute;inset:0;z-index:50;display:none;align-items:center;justify-content:center;
+  background:rgba(10,4,18,.72)}
+#quitask.on{display:flex}
+#quitask .qa{width:340px;background:#fffdf5;border:4px solid var(--ink);box-shadow:0 5px 0 var(--ink);
+  color:var(--ink);padding:22px 20px;text-align:center}
+#quitask p{font-size:17px;line-height:1.8;margin-bottom:16px}
+#quitask .qabtn{display:flex;gap:14px;justify-content:center}
+.shake{animation:sh .16s}
+@keyframes sh{0%{transform:translate(-50%,-50%)}30%{transform:translate(-52%,-48%)}60%{transform:translate(-48%,-52%)}100%{transform:translate(-50%,-50%)}}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="app">
+
+  <div id="quit" aria-label="やめる">×</div>
+  <div id="quitask"><div class="qa">
+    <p>ぼうけんを やめて<br>タイトルに もどる？</p>
+    <div class="qabtn"><div class="btn gold" id="quit-no">つづける</div><div class="btn" id="quit-yes">やめる</div></div>
+  </div></div>
+
+  <!-- 1. 音えらび -->
+  <section class="screen on" id="s-sound"><div class="center">
+    <div class="logo"><div class="l2" style="font-size:30px">消化クエスト</div></div>
+    <p class="lead">このきょうざいは 音が でます。<br>音の オン・オフを えらんでください。</p>
+    <div class="btn gold" id="sound-on">音 オン</div>
+    <div class="btn" id="sound-off">音 オフ</div>
+  </div></section>
+
+  <!-- 2. タイトル -->
+  <section class="screen" id="s-title"><div class="center">
+    <div id="title-item"></div>
+    <div class="logo">
+      <div class="l1">中２理科 消化と吸収</div>
+      <div class="l2">消化クエスト</div>
+      <div class="l3">～黄金のブドウ糖を求めて～</div>
+    </div>
+    <div class="btn gold" id="btn-start">スタート</div>
+    <p class="hint">全７章　口・食道・胃・小腸の入口・柔毛・大腸・たからばこ</p>
+  </div></section>
+
+  <!-- 3. プロローグ -->
+  <section class="screen" id="s-prologue">
+    <div class="roll" id="roll"></div>
+    <div class="tap">タップで すすむ</div>
+  </section>
+
+  <!-- 4. キャラえらび -->
+  <section class="screen" id="s-chara"><div class="center">
+    <div class="plate" style="font-size:18px">キャラクターせんたく</div>
+    <div class="charas" id="charas"></div>
+    <p class="pager">1/3</p>
+    <div class="btn gold" id="btn-chara">このキャラクターにする</div>
+  </div></section>
+
+  <!-- 5. 移動（通路＋会話） -->
+  <section class="screen" id="s-move">
+    <div id="minimap"></div>
+    <div class="talk" id="talk">
+      <div class="who" id="talk-who"></div>
+      <div class="msg" id="talk-msg"></div>
+    </div>
+  </section>
+
+  <!-- 6. つぎのステージ -->
+  <section class="screen" id="s-next"><div class="center">
+    <div class="plate" id="next-plate">第２章　食　道</div>
+    <div id="next-item"></div>
+    <div class="msgbox" id="next-msg" style="width:410px;text-align:center"></div>
+    <div class="btn gold" id="btn-next">すすむ</div>
+  </div></section>
+
+  <!-- 7. ミッション -->
+  <section class="screen" id="s-mission"><div class="center">
+    <div class="missiontitle">ミッション発生！</div>
+    <div id="mission-item"></div>
+    <div class="btn gold" id="btn-mission">つぎにすすむ</div>
+  </div></section>
+
+  <!-- 8. あそびかた -->
+  <section class="screen" id="s-howto"><div class="center">
+    <div class="board" data-fit="看板">
+      <p id="howto-text"></p>
+      <div id="howto-pic"></div>
+    </div>
+    <div class="btn gold" id="btn-howto">スタート</div>
+  </div></section>
+
+  <!-- 9. ゲーム -->
+  <section class="screen" id="s-game">
+    <div id="stagearea"></div>
+    <div class="hud">
+      <div class="badge"><div class="t" id="score-label">できた麦芽糖</div><div class="v"><span id="score">0</span><span id="score-unit">こ</span></div></div>
+      <div class="clock" id="clock"><div class="t">のこり</div><div class="v"><span id="time">10</span>秒</div></div>
+    </div>
+    <div id="gauge">
+      <div class="gcap">水分きゅうしゅうゲージ</div>
+      <div class="gwrap"><div class="gbar"><div class="gfill"></div></div><div class="gline"></div></div>
+      <div class="gclear">クリア</div>
+    </div>
+    <div id="cheer"></div>
+    <div id="countdown"><div class="n">3</div></div>
+  </section>
+
+  <!-- 10. リザルト -->
+  <section class="screen" id="s-result"><div class="center">
+    <div class="kanban" data-fit="リザルト看板">
+      <div class="hd">★ミッションクリア★</div>
+      <div class="bd" id="rows"></div>
+    </div>
+    <div class="btn gold" id="btn-result">つぎにすすむ</div>
+  </div></section>
+
+  <!-- 11. ぼうけんの書 -->
+  <section class="screen" id="s-book"><div class="center">
+    <div class="scroll" id="scroll" data-fit="羊皮紙"></div>
+    <div class="btn gold" id="btn-book">ぼうけんの書を よむ</div>
+  </div></section>
+
+  <!-- 12. エピローグ -->
+  <section class="screen" id="s-epilogue">
+    <div class="roll" id="roll2"></div>
+    <div class="tap">タップで すすむ</div>
+  </section>
+
+  <!-- 13. エンディング -->
+  <section class="screen" id="s-ending"><div class="center">
+    <div id="end-item"></div>
+    <div class="rankplate"><div class="rk">ぼうけんの けっか</div><div class="rn" id="rank-name">－</div></div>
+    <div class="ranklist" id="rank-list"></div>
+    <div class="btn gold" id="btn-again">はじめから もういちど</div>
+  </div></section>
+
+</div></div>
+
+<script src="_chars.js"></script>
+<script src="_ui.js"></script>
+<script src="_stages.js"></script>
+<script src="_games.js"></script>
+<script>
+"use strict";
+/* ============================================================
+   消化クエスト（全7章）
+   教科書：東京書籍 新しい科学2 単元2-3 動物の体のつくりと働き
+   画面の並びと操作は 原作（消化ダンジョン）をなぞり、中身を中2理科にした。
+   ============================================================ */
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+/* ---------- 画面スケーリング ---------- */
+const app = $('#app');
+function fit(){
+  const s = Math.min(window.innerWidth/500, window.innerHeight/666);
+  app.style.transform = 'scale(' + s + ')';
+}
+window.addEventListener('resize', fit); fit();
+
+/* ---------- ドット絵 ---------- */
+function sprite(map, pal, px){
+  px = px || 4;
+  const w = map[0].length, h = map.length;
+  let r = '<svg width="'+(w*px)+'" height="'+(h*px)+'" viewBox="0 0 '+w+' '+h+'" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">';
+  for(let y=0;y<h;y++){
+    const row = map[y];
+    let x = 0;
+    while(x < w){
+      const c = row[x];
+      if(c === '.'){ x++; continue; }
+      let n = 1;
+      while(x+n < w && row[x+n] === c) n++;
+      r += '<rect x="'+x+'" y="'+y+'" width="'+n+'" height="1" fill="'+pal[c]+'"/>';
+      x += n;
+    }
+  }
+  return r + '</svg>';
+}
+
+const PLAYERS = [
+  {id:0, name:'ゆうしゃ', map:YUUSHA, pal:YUUSHA_PAL, ab:'てきぱき できる<br>（点が ふえる）', bonusScore:3, bonusTime:0},
+  {id:1, name:'まほうつかい', map:MAHOU, pal:MAHOU_PAL, ab:'じかんを あやつる<br>（時間が のびる）', bonusScore:0, bonusTime:3},
+  {id:2, name:'せんし', map:SENSHI, pal:SENSHI_PAL, ab:'すべてが 少しアップ<br>（点も 時間も）', bonusScore:1, bonusTime:2}
+];
+
+/* ブドウ糖の粒。絵は生成したもの（assets/icon/glu.png）。
+   教科書 p.134 図2（消化のしくみ）と同じ 緑の六角形。
+   ※ p.132 図1（だ液の実験）は オレンジの玉で かいてあり、そちらとは 形がちがう */
+const GLU = (s) => '<img class="tok" src="assets/icon/glu.png" srcset="assets/icon/glu@2x.png 2x" ' +
+  'height="' + Math.round((s || 34) * 1.12) + '" alt="">';
+
+/* 麦芽糖＝ブドウ糖が2つ つながった形。結合の棒を必ず見せる */
+function pair(s){
+  s = s || 34;
+  const bw = Math.max(5, Math.round(s*0.27)), bh = Math.max(4, Math.round(s*0.18));
+  return '<span style="display:inline-flex;align-items:center">' + GLU(s) +
+    '<span style="width:'+bw+'px;height:'+bh+'px;background:#2f7a3a;display:inline-block"></span>' +
+    GLU(s) + '</span>';
+}
+
+/* 黄金のブドウ糖（タイトル・ミッション・エンディングで出す） */
+function goldItem(px){
+  px = px || 3;
+  return '<img class="tok" src="assets/icon/gold.png" srcset="assets/icon/gold@2x.png 2x" ' +
+    'height="' + Math.round(38 * px / 3) + '" alt="黄金のブドウ糖">';
+}
+
+/* ---------- 音（チップチューン） ---------- */
+const Snd = {
+  on:false, ctx:null, bgmTimer:null, step:0,
+  init(){ if(!this.ctx){ try{ this.ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } },
+  tone(f, dur, type, vol){
+    if(!this.on || !this.ctx) return;
+    const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type || 'square'; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(vol || .05, t);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + dur);
+  },
+  se(kind){
+    if(!this.on) return;
+    if(kind === 'chew'){ this.tone(150 + Math.random()*40, .07, 'square', .05); }
+    if(kind === 'cut'){ this.tone(700, .06, 'square', .035); setTimeout(()=>this.tone(950,.07,'square',.03),50); }
+    if(kind === 'ok'){ [523,659,784].forEach((f,i)=>setTimeout(()=>this.tone(f,.12,'square',.05), i*70)); }
+    if(kind === 'ng'){ this.tone(196,.18,'sawtooth',.045); setTimeout(()=>this.tone(147,.22,'sawtooth',.04),110); }
+    if(kind === 'lv'){ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>this.tone(f,.16,'square',.055), i*110)); }
+    if(kind === 'cd'){ this.tone(440,.1,'square',.05); }
+    if(kind === 'go'){ this.tone(880,.22,'square',.06); }
+  },
+  bgm(start){
+    if(this.bgmTimer){ clearInterval(this.bgmTimer); this.bgmTimer = null; }
+    if(!start || !this.on) return;
+    const mel = [392,0,466,0,523,0,466,0, 392,0,349,0,392,0,0,0];
+    const bass= [98,0,0,0,98,0,0,0, 87,0,0,0,98,0,0,0];
+    this.step = 0;
+    this.bgmTimer = setInterval(()=>{
+      const i = this.step % 16;
+      if(mel[i]) this.tone(mel[i], .16, 'square', .022);
+      if(bass[i]) this.tone(bass[i], .22, 'triangle', .035);
+      this.step++;
+    }, 150);
+  }
+};
+
+/* ---------- 状態 ---------- */
+const S = { player:0, lv:1, si:0, score:0, time:0, playing:false, timer:null, log:[] };
+let curGame = null;
+
+function paintUI(){
+  if($('.badge') && !$('.badge svg.uibg')){
+    $('.badge').insertAdjacentHTML('afterbegin', UI.starBadge(116));
+    $('.clock').insertAdjacentHTML('afterbegin', UI.clockFace(108));
+    $('.clock').insertAdjacentHTML('beforeend', '<span class="hg">' + UI.hourglass(34) + '</span>');
+  }
+  const mm = $('#minimap');
+  if(mm) mm.innerHTML = UI.minimap(96, S.si + 1);
+}
+
+function show(id){
+  $$('.screen').forEach(e => e.classList.remove('on'));
+  $(id).classList.add('on');
+  requestAnimationFrame(paintUI);
+  $('#quit').classList.toggle('on', id !== '#s-sound' && id !== '#s-title');
+}
+
+const bgUrl = k => "url('assets/bg/" + k + ".png')";
+
+/* ---------- 音えらび ---------- */
+$('#sound-on').onclick = () => { Snd.init(); Snd.on = true; if(Snd.ctx && Snd.ctx.state==='suspended') Snd.ctx.resume(); Snd.bgm(true); toTitle(); };
+$('#sound-off').onclick = () => { Snd.on = false; toTitle(); };
+
+function toTitle(){
+  $('#title-item').innerHTML = goldItem(4);
+  show('#s-title');
+}
+
+/* ---------- プロローグ ---------- */
+const PROLOGUE =
+  'ヒトが 生きるための エネルギーは、<br>食べものの 中の <b>養分</b> から 生まれる。<br><br>'+
+  'だが 食べものは、そのままでは<br>体の中に とりこむことが できない。<br><br>'+
+  'この体の おく深くには、<br>口から こう門まで つながる 一本の長い道<br>'+
+  '<b style="color:#ffd84d">”消化管”</b> という ダンジョンがある。<br><br>'+
+  'そのダンジョンを すすみながら 食べものを<br>'+
+  'できるかぎり 小さく くだいていくと、<br>'+
+  'さいごに <b style="color:#ffd84d">”黄金のブドウ糖”</b> が すがたを あらわす。<br><br>'+
+  'それを 血管から 全身の細胞へ とどける――<br>'+
+  'それが ぼうけんしゃたちの 使命である。<br><br>'+
+  'さあ、第１章。<br>入口の 「口」 から はじめよう。';
+
+const EPILOGUE =
+  '口から こう門まで、<br>一本の道を たどりきった。<br><br>'+
+  'デンプンは <b style="color:#ffd84d">ブドウ糖</b> に、<br>'+
+  'タンパク質は <b style="color:#ffd84d">アミノ酸</b> に、<br>'+
+  '脂肪は <b style="color:#ffd84d">脂肪酸と モノグリセリド</b> に 分かれた。<br><br>'+
+  'それらは 柔毛から 体の中へ とりこまれ、<br>'+
+  '毛細血管と リンパ管から 全身の 細胞へ。<br><br>'+
+  '養分は エネルギーの もとに なり、<br>からだを つくる 材料にも なる。<br><br>'+
+  'きみが 今日 食べた ごはんも、<br>いま この道を すすんでいる。<br><br>'+
+  '――消化クエスト　完――';
+
+function playRoll(el, html, secs, doneRef){
+  el.innerHTML = html;
+  el.style.transition = 'none';
+  el.style.top = '666px';
+  doneRef.v = false;
+  requestAnimationFrame(()=>{
+    el.style.transition = 'top ' + secs + 's linear';
+    el.style.top = '40px';
+  });
+  setTimeout(()=>{ doneRef.v = true; }, secs*1000);
+}
+const rollP = {v:false}, rollE = {v:false};
+
+$('#btn-start').onclick = () => {
+  show('#s-prologue');
+  playRoll($('#roll'), PROLOGUE, 16, rollP);
+};
+$('#s-prologue').onclick = () => {
+  if(!rollP.v){ $('#roll').style.transition = 'none'; $('#roll').style.top = '40px'; rollP.v = true; }
+  else toChara();
+};
+
+/* ---------- キャラ選択 ---------- */
+function toChara(){
+  $('#charas').innerHTML = PLAYERS.map(p =>
+    '<div class="chara' + (p.id === S.player ? ' sel' : '') + '" data-p="' + p.id + '">'+
+      '<div class="nm">' + p.name + '</div>' +
+      sprite(p.map, p.pal, 3) +
+      '<div class="ab">' + p.ab + '</div>'+
+    '</div>').join('')
+    + '<div class="arrow left">&lt;</div><div class="arrow right">&gt;</div>';
+  const flip = d => {
+    S.player = (S.player + d + PLAYERS.length) % PLAYERS.length;
+    $$('#charas .chara').forEach(e => e.classList.toggle('sel', +e.dataset.p === S.player));
+    $('.pager').textContent = (S.player + 1) + '/' + PLAYERS.length;
+    Snd.se('cd');
+  };
+  $('#charas .arrow.left').onclick = () => flip(-1);
+  $('#charas .arrow.right').onclick = () => flip(1);
+  $('.pager').textContent = (S.player + 1) + '/' + PLAYERS.length;
+  show('#s-chara');
+}
+$('#btn-chara').onclick = () => {
+  Snd.se('ok');
+  S.si = 0; S.lv = 1; S.log = [];
+  toMove(-1);
+};
+
+/* ---------- 移動（通路＋会話） ---------- */
+const OPENING_TALK = [
+  'ここが 体の 入口だ。<br>これから 消化管を すすんでいく。',
+  '食べものを できるだけ 小さく くだいて、<br>体に とりこめる かたちに するのが 目的だ。',
+  'まずは <span class="org">口</span> から！'
+];
+let talkList = [], talkIdx = 0, talkNext = null;
+
+function toMove(i){
+  const p = PLAYERS[S.player];
+  talkIdx = 0;
+  if(i < 0){
+    talkList = OPENING_TALK;
+    $('#s-move').style.backgroundImage = bgUrl('michi4');   // 入口は 金色の通路
+    talkNext = () => toNext(0);
+  } else {
+    const st = STAGES[i];
+    talkList = st.talk;
+    // 最終章は 通路ではなく たからばこの前で 話す
+    $('#s-move').style.backgroundImage = bgUrl(i === STAGES.length - 1 ? st.bg : st.road);
+    talkNext = () => (i + 1 < STAGES.length) ? toNext(i + 1) : toEpilogue();
+  }
+  $('#talk-who').innerHTML = sprite(p.map, p.pal, 2) + '<div class="nm">' + p.name + '</div>';
+  $('#talk-msg').innerHTML = talkList[0] + '<div class="next">▼ タップ</div>';
+  show('#s-move');
+}
+$('#s-move').onclick = () => {
+  talkIdx++;
+  if(talkIdx < talkList.length){
+    $('#talk-msg').innerHTML = talkList[talkIdx] + '<div class="next">▼ タップ</div>';
+    Snd.se('cd');
+  } else {
+    Snd.se('ok');
+    talkNext();
+  }
+};
+
+/* ---------- つぎのステージ ---------- */
+function toNext(i){
+  S.si = i;
+  const st = STAGES[i];
+  $('#next-plate').textContent = st.title;
+  $('#next-item').innerHTML = goldItem(3);
+  $('#next-msg').innerHTML = st.arrive;
+  $('#s-next').style.backgroundImage = bgUrl(st.bg);
+  show('#s-next');
+}
+$('#btn-next').onclick = () => { Snd.se('cd'); toMission(); };
+
+/* ---------- ミッション ---------- */
+function toMission(){
+  const st = STAGES[S.si];
+  $('#mission-item').innerHTML =
+    '<div class="msgbox" style="width:400px;text-align:center">' + st.mission + '</div>';
+  show('#s-mission');
+}
+$('#btn-mission').onclick = () => {
+  const st = STAGES[S.si];
+  $('#howto-text').innerHTML = st.howto;
+  $('#howto-pic').innerHTML = GAMES[st.game].pic();
+  $('#s-howto').style.background = "#0b0610 " + bgUrl(st.bg) + " center/cover no-repeat";
+  show('#s-howto');
+};
+$('#btn-howto').onclick = () => startGame();
+
+/* ---------- ゲームの 道具箱 ---------- */
+const G = {
+  get st(){ return STAGES[S.si]; },
+  add(n){ S.score += n; paintScore(); },
+  setScore(n){ S.score = n; paintScore(); },
+  score(){ return S.score; },
+  cheer(t){ cheer(t); },
+  se(k){ Snd.se(k); },
+  gauge(v){ $('#gauge .gfill').style.width = Math.round(v*100) + '%'; },
+  done(){ endGame(); },
+  pause(){ clearInterval(S.timer); },                 // 解説を読むあいだ 時計を止める
+  resume(){ if(S.playing) startTicker(); }
+};
+function paintScore(){ $('#score').textContent = S.score; }
+
+let cheerTimer = null;
+function cheer(txt){
+  const c = $('#cheer');
+  c.innerHTML = txt;
+  c.style.opacity = 1;
+  clearTimeout(cheerTimer);
+  cheerTimer = setTimeout(() => { c.style.opacity = 0; }, 1400);
+}
+
+function startGame(){
+  const st = STAGES[S.si];
+  $('#cheer').style.opacity = 0;     // 前の章の かけ声を 持ちこさない
+  S.score = 0;
+  S.time = st.time + (st.time ? PLAYERS[S.player].bonusTime : 0);
+  $('#score-label').textContent = st.hud.label;
+  $('#score-unit').textContent = st.hud.unit;
+  paintScore();
+  $('#time').textContent = S.time;
+  $('#clock').classList.remove('warn');
+  $('#clock').classList.toggle('off', st.time === 0);
+  $('#gauge').classList.toggle('on', !!st.gauge);
+  $('#s-game').style.background = "#2a0c16 " + bgUrl(st.bg) + " center/cover no-repeat";
+
+  curGame = GAMES[st.game];
+  curGame.build($('#stagearea'), G);
+  show('#s-game');
+
+  const cd = $('#countdown');
+  cd.style.display = 'flex';
+  let n = 3;
+  cd.querySelector('.n').textContent = n;
+  Snd.se('cd');
+  clearInterval(S.cd);
+  const t = S.cd = setInterval(() => {
+    n--;
+    if(n > 0){ cd.querySelector('.n').textContent = n; Snd.se('cd'); }
+    else if(n === 0){ cd.querySelector('.n').textContent = 'GO!'; Snd.se('go'); }
+    else {
+      clearInterval(t);
+      cd.style.display = 'none';
+      runGame();
+    }
+  }, 800);
+}
+
+function runGame(){
+  S.playing = true;
+  curGame.start(G);
+  startTicker();
+}
+
+/* 時計を動かす。止めたあと（食道の解説・×の確認）も ここから 同じ残り時間で 再開する */
+function startTicker(){
+  const st = STAGES[S.si];
+  if(!st.time) return;                 // たからばこは 時間なし
+  clearInterval(S.timer);
+  S.timer = setInterval(() => {
+    S.time--;
+    $('#time').textContent = Math.max(0, S.time);
+    if(S.time <= 3) $('#clock').classList.add('warn');
+    if(S.time === Math.ceil((st.time + PLAYERS[S.player].bonusTime) * 0.5)) cheer('はんぶん すぎた！');
+    if(S.time === 3) cheer('ラストスパート！');
+    if(S.time <= 0) endGame();
+  }, 1000);
+}
+
+function endGame(){
+  if(!S.playing) return;
+  S.playing = false;
+  clearInterval(S.timer);
+  if(curGame) curGame.stop();
+  $('#time').textContent = '0';
+  cheer(STAGES[S.si].time ? 'TIME UP' : 'クリア！');
+  S.resT = setTimeout(showResult, 900);
+}
+
+/* ---------- リザルト ---------- */
+function showResult(){
+  const st = STAGES[S.si], p = PLAYERS[S.player];
+  const bs = st.time ? p.bonusScore : 0;
+  const total = S.score + bs;
+  let up = 1;
+  if(total > st.lvup[1]) up = 3; else if(total > st.lvup[0]) up = 2;
+  const newLv = S.lv + up;
+
+  const rows = [];
+  rows.push(st.hud.label + '<br><b>' + S.score + '</b> ' + st.hud.unit);
+  if(bs > 0) rows.push(p.name + 'ボーナス： <b style="font-size:18px">+' + bs + '</b> ' + st.hud.unit);
+  if(st.time && p.bonusTime > 0) rows.push(p.name + 'ボーナス： <b style="font-size:18px">+' + p.bonusTime + '</b> 秒');
+  rows.push('レベル： <span class="hl">' + up + '＋Lv ↑↑</span>');
+  rows.push('げんざいのレベル： <span class="hl">' + newLv + ' Lv</span>');
+
+  $('#rows').innerHTML = rows.map(r => '<div class="row">' + r + '</div>').join('');
+  show('#s-result');
+  $$('#rows .row').forEach((el, i) => setTimeout(() => el.classList.add('on'), 400 + i*450));
+  setTimeout(() => Snd.se('lv'), 400 + rows.length*450);
+  S.lv = newLv;
+  S.log[S.si] = { score: S.score, up: up };
+}
+
+/* ---------- ぼうけんの書 ---------- */
+function bookHead(st){
+  return '<div class="part">Part ' + st.n + '</div>'+
+         '<div class="ttl">ぼうけんの書<br>' + st.book.title + '</div>';
+}
+function bookFull(st){
+  return '<div class="bd">' +
+    st.book.full.map(s => '<h4>' + s[0] + '</h4><p>' + s[1] + '</p>').join('') +
+    '<div class="src">出典：東京書籍 新しい科学２／単元２-３</div></div>';
+}
+let bookOpened = false;
+$('#btn-result').onclick = () => {
+  const st = STAGES[S.si];
+  bookOpened = false;
+  $('#scroll').innerHTML = bookHead(st) + '<div class="sum">' + st.book.sum + '</div>';
+  $('#scroll').classList.add('short');
+  $('#btn-book').textContent = 'ぼうけんの書を よむ';
+  show('#s-book');
+  Snd.se('ok');
+};
+$('#btn-book').onclick = () => {
+  const st = STAGES[S.si];
+  if(!bookOpened){
+    bookOpened = true;
+    $('#scroll').innerHTML = bookHead(st) + bookFull(st);
+    $('#scroll').classList.remove('short');
+    $('#scroll').scrollTop = 0;
+    $('#btn-book').textContent = '先へ すすむ';
+  } else {
+    toMove(S.si);
+  }
+};
+
+/* ---------- エピローグ → エンディング ---------- */
+function toEpilogue(){
+  show('#s-epilogue');
+  playRoll($('#roll2'), EPILOGUE, 15, rollE);
+}
+$('#s-epilogue').onclick = () => {
+  if(!rollE.v){ $('#roll2').style.transition = 'none'; $('#roll2').style.top = '40px'; rollE.v = true; }
+  else toEnding();
+};
+
+const RANKS = [
+  [19, '黄金のブドウ糖'],
+  [16, '銀のブドウ糖'],
+  [13, '銅のブドウ糖'],
+  [10, 'ブドウ糖のかけら'],
+  [0,  'まだ デンプンのまま']
+];
+const KEYWORD = [
+  'アミラーゼが デンプンを 分解',
+  '消化管は 口から こう門まで 1本',
+  '胃液の ペプシンが タンパク質に',
+  'すい液は 3つの養分に、胆汁は 脂肪に',
+  '養分は 毛細血管と リンパ管へ',
+  '水分の 一部を 吸収する',
+  '養分は 血管を 通って 全身へ'
+];
+function toEnding(){
+  const r = RANKS.find(x => S.lv >= x[0]);
+  $('#end-item').innerHTML = goldItem(7);
+  $('#rank-name').textContent = r[1];
+  $('#rank-list').innerHTML =
+    '<div class="t">レベル ' + S.lv + '／ぼうけんの まとめ</div>' +
+    STAGES.map((st, i) => '<div><b>' + st.n + '. ' + st.name + '</b>　' + KEYWORD[i] + '</div>').join('');
+  show('#s-ending');
+  Snd.se('lv');
+}
+$('#btn-again').onclick = () => { S.lv = 1; S.si = 0; S.log = []; toMove(-1); };
+
+/* ---------- しまう ---------- */
+/* 右上の × は、1タップで もどると それまでのレベルが 消える。
+   ゲーム中なら 時計を止めてから たずね、「つづける」で 同じ残り時間から 再開する */
+let pausedGame = false;
+$('#quit').onclick = () => {
+  pausedGame = S.playing;
+  if(S.playing){ S.playing = false; clearInterval(S.timer); if(curGame) curGame.stop(); }
+  $('#quitask').classList.add('on');
+};
+$('#quit-no').onclick = () => {
+  $('#quitask').classList.remove('on');
+  if(pausedGame){ pausedGame = false; runGame(); }
+};
+$('#quit-yes').onclick = () => {
+  $('#quitask').classList.remove('on');
+  pausedGame = false;
+  clearInterval(S.cd); clearTimeout(S.resT);          // カウントダウン・結果待ちも 止める
+  $('#countdown').style.display = 'none';
+  show('#s-title');
+};
+</script>
+</body>
+</html>
