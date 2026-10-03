@@ -1,15 +1,12 @@
-_history*
-__pycache__/
+# 公開するのは 本体（index.html・消化クエスト.html・4つの .js・assets/）だけ。
+# 先頭が _ のものは 開発用。原作のスクショ・素材（_原作スクショ・_原作素材）も ここに入っていて、
+# 公開すると 原作の画像を 配ることになる。必ず はずす。
+_*
+!_chars.js
+!_ui.js
+!_stages.js
+!_games.js
 *.py
-_check*.js
-_audit.json
-*.docx
-_*/
-_*.png
-_*.json
+__pycache__/
+.claude/
 Thumbs.db
-.DS_Store
-_*.html
-_*.txt
-_原作トレース.js
-_sprites.js

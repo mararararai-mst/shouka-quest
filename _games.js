@@ -310,6 +310,11 @@
        絵の中の 黄色い所は 左0.23 上0.69 右0.84 下0.89（_import_organ.py の実測） */
     var POS = [[90, 238, 38], [134, 244, 46], [186, 236, 36], [112, 258, 32], [160, 258, 32], [214, 248, 28]];
 
+    /* 画面の 大きさで 拡大・縮小されているので、ゆびの 位置を 舞台（500px）の 座標に なおす。
+       そうしないと 大きい画面ほど 少しの 動きで 1回に なる */
+    function stageX(e) {
+      return e.clientX / (document.querySelector('#app').getBoundingClientRect().width / 500);
+    }
     function paint(l) {
       l.el.style.transform = 'translate(' + l.dx.toFixed(1) + 'px,' + l.dy.toFixed(1) +
         'px) scale(' + l.sc.toFixed(2) + ')';
@@ -385,10 +390,10 @@
         });
         var area = box.querySelector('#gastro');
         area.addEventListener('pointerdown', function (e) {
-          dragging = true; lastX = e.clientX; dir = 0; travel = 0;
+          dragging = true; lastX = stageX(e); dir = 0; travel = 0;
           if (area.setPointerCapture) area.setPointerCapture(e.pointerId);
         });
-        area.addEventListener('pointermove', function (e) { onMove(e.clientX); });
+        area.addEventListener('pointermove', function (e) { onMove(stageX(e)); });
         area.addEventListener('pointerup', function () { dragging = false; });
         area.addEventListener('pointercancel', function () { dragging = false; });
       },
@@ -398,10 +403,10 @@
   })();
 
   /* ============================================================
-     第4章　小腸の入口　── 数字のぶんだけ クリック
+     第4章　小腸の入口　── 数字のぶんだけ タップ
      ============================================================ */
   GAMES.count = (function () {
-    var G = null, live = false, phase = 0, need = 0, got = 0, cleared = 0;
+    var G = null, live = false, phase = 0, need = 0, got = 0, cleared = 0, advT = null;
     var ORGAN = [
       { id: 'sui', name: 'すい臓', juice: 'すい液' },
       { id: 'tan', name: '胆のう', juice: '胆汁' },
@@ -447,9 +452,11 @@
       b.querySelector('.c').textContent = got + '/' + need;
       var z = document.querySelector('#z-' + o.id);
       z.classList.remove('hit'); void z.offsetWidth; z.classList.add('hit');
-      if (got > need) { G.se('ng'); G.cheer('おしすぎ！ もういちど'); next(); return; }
+      /* ぴったりの あと 次の器官に うつるまでの 0.26秒に 押しても「おしすぎ」 */
+      if (got > need) { clearTimeout(advT); G.se('ng'); G.cheer('おしすぎ！ もういちど'); next(); return; }
       if (got === need) {
-        setTimeout(function () {
+        advT = setTimeout(function () {
+          if (!live) return;              // 時間切れのあとに 点を 入れない
           phase++;
           if (phase >= ORGAN.length) {
             phase = 0; cleared++;
@@ -478,7 +485,7 @@
           'style="height:134px;left:14px;top:8px">' +
           '<svg viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg">' +
             '<text x="226" y="22" font-size="12" text-anchor="middle" fill="#2b1b3d">光った器官を</text>' +
-            '<text x="226" y="38" font-size="12" text-anchor="middle" fill="#2b1b3d">数字のぶん クリック</text>' +
+            '<text x="226" y="38" font-size="12" text-anchor="middle" fill="#2b1b3d">数字のぶん タップ</text>' +
             '<circle cx="226" cy="90" r="28" fill="#fff" stroke="#e0342c" stroke-width="3"/>' +
             '<text x="226" y="101" font-size="28" text-anchor="middle" fill="#e0342c">3</text>' +
             sparkle(42, 44) + hand(34, 42, .8) +
@@ -497,7 +504,7 @@
         });
       },
       start: function () { live = true; next(); },
-      stop: function () { live = false; }
+      stop: function () { live = false; clearTimeout(advT); }
     };
   })();
 
@@ -539,7 +546,7 @@
       });
       var best = null, bestD = -1;
       for (var i = 0; i < (tries || 14); i++) {
-        var x = 6 + rnd(392), y = 8 + rnd(104), d = 9999;
+        var x = 6 + rnd(392), y = 28 + rnd(91), d = 9999;   // 上の28pxは 星と時計に かくれる
         used.forEach(function (u) {
           d = Math.min(d, Math.max(Math.abs(u[0] - x) / 104, Math.abs(u[1] - y) / 60));
         });
@@ -652,7 +659,7 @@
   })();
 
   /* ============================================================
-     第6章　大腸　── 水をクリックして 吸収（カスは さわらない）
+     第6章　大腸　── 水をタップして 吸収（カスは さわらない）
      ============================================================ */
   GAMES.mogura = (function () {
     var G = null, live = false, t = null, holes = [], val = 0.28, cleared = false;
@@ -718,7 +725,7 @@
         document.querySelector('#gauge').classList.remove('done');
         var h = '';
         for (var i = 0; i < 6; i++) h += '<div class="hole"><div class="pup"></div></div>';
-        box.innerHTML = '<div id="colon"><div class="cwall"></div><div class="grid">' + h + '</div></div>';
+        box.innerHTML = '<div id="colon"><div class="grid">' + h + '</div></div>';
         [].forEach.call(box.querySelectorAll('.hole'), function (hl) {
           var o = { el: hl.querySelector('.pup'), busy: false, t: null };
           hl.addEventListener('pointerdown', function () { tap(o); });
@@ -801,7 +808,7 @@
             '<rect x="246" y="76" width="8" height="22" fill="#ffe9a8"/>' +
           '</svg>' +
           '<div class="shint">こすって けずり出せ！</div></div>';
-        cv = box.querySelector('#scr'); cx = cv.getContext('2d');
+        cv = box.querySelector('#scr'); cx = cv.getContext('2d', { willReadFrequently: true });
         var g = cx.createLinearGradient(0, 0, W, H);
         g.addColorStop(0, '#c9963c'); g.addColorStop(.5, '#f2c33c'); g.addColorStop(1, '#a8763f');
         cx.fillStyle = g; cx.fillRect(0, 0, W, H);

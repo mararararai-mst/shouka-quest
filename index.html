@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>消化クエスト｜中2理科 消化と吸収</title>
-<meta name="description" content="中学2年 理科 単元2-3「消化と吸収」。口・食道・胃・小腸・大腸の7つの章を、ドット絵RPG風のミニゲームで進みながら、消化酵素のはたらきと吸収のしくみをたどる教材。">
+<title>消化クエスト｜中２理科 消化と吸収</title>
+<meta name="description" content="中学２年 理科 単元２-３「消化と吸収」。口・食道・胃・小腸・大腸の７つの章を、ドット絵RPG風のミニゲームで進みながら、消化酵素のはたらきと吸収のしくみをたどる教材。">
 <meta property="og:title" content="消化クエスト ～黄金のブドウ糖を求めて～">
-<meta property="og:description" content="かむ、まぜる、流しこむ、吸収する。消化管を1本の道として進む 中2理科 消化と吸収のRPG教材。">
+<meta property="og:description" content="かむ、まぜる、流しこむ、吸収する。消化管を１本の道として進む 中２理科 消化と吸収のRPG教材。">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 38'%3E%3Cpolygon points='17,1 33,10 33,28 17,37 1,28 1,10' fill='%23f2c33c'/%3E%3Cpolygon points='17,6 27,12 27,20 17,26 7,20 7,12' fill='%23ffe9a8'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,6 +35,8 @@ body{
   width:500px;height:666px;flex:none;position:relative;overflow:hidden;
   background:#1d1030; transform-origin:center center;
   box-shadow:0 0 0 4px #2b1b3d;
+  /* 連打しても ダブルタップで 拡大されない・字が 選択されて 青くならない（iPad・Chromebook） */
+  touch-action:manipulation; -webkit-user-select:none; user-select:none;
 }
 .screen{position:absolute;inset:0;display:none}
 .screen.on{display:block}
@@ -68,6 +70,7 @@ body{
 .logo .l2{font-size:42px;color:var(--gold);letter-spacing:4px;text-shadow:4px 4px 0 #6b4a10;line-height:1.2}
 .logo .l3{font-size:14px;color:#e8dcff;letter-spacing:2px;margin-top:6px}
 #s-title .center{background:#2a1640}
+#btn-cont .sub{display:block;font-size:12px;color:#e8dcff;letter-spacing:0;margin-top:3px}
 
 /* ---- プロローグ / エピローグ ---- */
 #s-prologue,#s-epilogue{background:#08040f}
@@ -279,7 +282,8 @@ body{
 
 /* ---- リザルト ---- */
 #s-result{background:#2a1640}
-.kanban{width:430px;height:403px;padding:110px 59px 53px 57px;
+/* 紙は 画像の 上118・左59・右371・下350（画素で 実測）。見出しが 木の縁に かからないよう 上は 8px あける */
+.kanban{width:430px;height:403px;padding:126px 59px 53px 61px;
   background:url('assets/ui/kanban.png') center/430px 403px no-repeat}
 .kanban .hd{color:#8a2b3a;text-align:center;font-size:17px;letter-spacing:2px;margin-bottom:2px}
 .kanban .bd{color:var(--ink);text-align:center}
@@ -367,6 +371,7 @@ body{
       <div class="l3">～黄金のブドウ糖を求めて～</div>
     </div>
     <div class="btn gold" id="btn-start">スタート</div>
+    <div class="btn" id="btn-cont" style="display:none">つづきから<span class="sub" id="cont-note"></span></div>
     <p class="hint">全７章　口・食道・胃・小腸の入口・柔毛・大腸・たからばこ</p>
   </div></section>
 
@@ -436,7 +441,7 @@ body{
   <!-- 10. リザルト -->
   <section class="screen" id="s-result"><div class="center">
     <div class="kanban" data-fit="リザルト看板">
-      <div class="hd">★ミッションクリア★</div>
+      <div class="hd" id="res-hd">★ミッションクリア★</div>
       <div class="bd" id="rows"></div>
     </div>
     <div class="btn gold" id="btn-result">つぎにすすむ</div>
@@ -507,11 +512,16 @@ function sprite(map, pal, px){
   return r + '</svg>';
 }
 
+/* ボーナスは 章ごとの 割合で わたす（点＝その章の レベル目安の 1割、時間＝その章の 時間の 1割）。
+   決まった数（+3点・+3秒）だと 章によって 重さが ちがい、小腸の入口では +3点が 3回クリア分に なっていた */
 const PLAYERS = [
-  {id:0, name:'ゆうしゃ', map:YUUSHA, pal:YUUSHA_PAL, ab:'てきぱき できる<br>（点が ふえる）', bonusScore:3, bonusTime:0},
-  {id:1, name:'まほうつかい', map:MAHOU, pal:MAHOU_PAL, ab:'じかんを あやつる<br>（時間が のびる）', bonusScore:0, bonusTime:3},
-  {id:2, name:'せんし', map:SENSHI, pal:SENSHI_PAL, ab:'すべてが 少しアップ<br>（点も 時間も）', bonusScore:1, bonusTime:2}
+  {id:0, name:'ゆうしゃ', map:YUUSHA, pal:YUUSHA_PAL, ab:'てきぱき できる<br>（点が ふえる）', rateScore:.10, rateTime:0},
+  {id:1, name:'まほうつかい', map:MAHOU, pal:MAHOU_PAL, ab:'じかんを あやつる<br>（時間が のびる）', rateScore:0, rateTime:.10},
+  {id:2, name:'せんし', map:SENSHI, pal:SENSHI_PAL, ab:'すべてが 少しアップ<br>（点も 時間も）', rateScore:.05, rateTime:.05}
 ];
+/* 割合が あれば 少なくとも 1。たからばこ（時間なし）は ボーナスなし */
+function bonusScore(st, p){ return st.time && p.rateScore ? Math.max(1, Math.round(st.lvup[0] * p.rateScore)) : 0; }
+function bonusTime(st, p){ return st.time && p.rateTime ? Math.max(1, Math.round(st.time * p.rateTime)) : 0; }
 
 /* ブドウ糖の粒。絵は生成したもの（assets/icon/glu.png）。
    教科書 p.134 図2（消化のしくみ）と同じ 緑の六角形。
@@ -574,7 +584,7 @@ const Snd = {
 };
 
 /* ---------- 状態 ---------- */
-const S = { player:0, lv:1, si:0, score:0, time:0, playing:false, timer:null, log:[] };
+const S = { player:0, lv:1, si:0, score:0, time:0, playing:false, timer:null, cd:null, resT:null };
 let curGame = null;
 
 function paintUI(){
@@ -602,8 +612,33 @@ $('#sound-off').onclick = () => { Snd.on = false; toTitle(); };
 
 function toTitle(){
   $('#title-item').innerHTML = goldItem(4);
+  const sv = saveGet();
+  $('#btn-cont').style.display = sv ? '' : 'none';
+  $('#cont-note').textContent = sv ? '第' + zen(sv.done + 1) + '章まで クリア・レベル ' + zen(sv.lv) : '';
   show('#s-title');
 }
+
+/* ---------- 途中保存（章の区切り） ----------
+   リザルトで レベルが 決まった時点で 保存する。開き直すと タイトルに「つづきから」が 出て、
+   その章の ぼうけんの書から 再開する。ブラウザが 保存を 許さないときは 何もしない */
+const SAVE_KEY = 'shouka-quest-save';
+function saveGet(){
+  try{
+    const v = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if(v && PLAYERS[v.player] && STAGES[v.done] && v.lv >= 1) return v;
+  }catch(e){}
+  return null;
+}
+function savePut(v){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(v)); }catch(e){} }
+function saveClear(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+const zen = n => String(n).replace(/[0-9]/g, d => String.fromCharCode(d.charCodeAt(0) + 0xFEE0));
+
+$('#btn-cont').onclick = () => {
+  const sv = saveGet();
+  if(!sv) return;
+  S.player = sv.player; S.lv = sv.lv; S.si = sv.done;
+  $('#btn-result').onclick();          // その章の ぼうけんの書から
+};
 
 /* ---------- プロローグ ---------- */
 const PROLOGUE =
@@ -673,7 +708,8 @@ function toChara(){
 }
 $('#btn-chara').onclick = () => {
   Snd.se('ok');
-  S.si = 0; S.lv = 1; S.log = [];
+  S.si = 0; S.lv = 1;
+  saveClear();                         // 新しい ぼうけんを 始めたら 前の記録は 消す
   toMove(-1);
 };
 
@@ -742,6 +778,12 @@ $('#btn-mission').onclick = () => {
 };
 $('#btn-howto').onclick = () => startGame();
 
+/* ---------- 時計を 止める わけ ----------
+   ×の確認を 出しているあいだ（quit）と、食道で まちがえた解説を 読んでいるあいだ（read）。
+   どちらかが 残っていれば 時計は 進めない。ゲームそのものは 止めない
+   （止めて start し直すと、問題が 入れかわったり 大腸の穴が 出たままに なったりする） */
+const hold = { quit:false, read:false };
+
 /* ---------- ゲームの 道具箱 ---------- */
 const G = {
   get st(){ return STAGES[S.si]; },
@@ -752,8 +794,8 @@ const G = {
   se(k){ Snd.se(k); },
   gauge(v){ $('#gauge .gfill').style.width = Math.round(v*100) + '%'; },
   done(){ endGame(); },
-  pause(){ clearInterval(S.timer); },                 // 解説を読むあいだ 時計を止める
-  resume(){ if(S.playing) startTicker(); }
+  pause(){ hold.read = true; clearInterval(S.timer); },   // 解説を読むあいだ 時計を止める
+  resume(){ hold.read = false; startTicker(); }
 };
 function paintScore(){ $('#score').textContent = S.score; }
 
@@ -770,7 +812,8 @@ function startGame(){
   const st = STAGES[S.si];
   $('#cheer').style.opacity = 0;     // 前の章の かけ声を 持ちこさない
   S.score = 0;
-  S.time = st.time + (st.time ? PLAYERS[S.player].bonusTime : 0);
+  S.time = st.time + bonusTime(st, PLAYERS[S.player]);
+  hold.read = false;
   $('#score-label').textContent = st.hud.label;
   $('#score-unit').textContent = st.hud.unit;
   paintScore();
@@ -783,19 +826,23 @@ function startGame(){
   curGame = GAMES[st.game];
   curGame.build($('#stagearea'), G);
   show('#s-game');
+  countdown();
+}
 
+/* 3・2・1・GO!。×で 止めたときは つづける で もういちど 3 から */
+function countdown(){
   const cd = $('#countdown');
   cd.style.display = 'flex';
   let n = 3;
   cd.querySelector('.n').textContent = n;
   Snd.se('cd');
   clearInterval(S.cd);
-  const t = S.cd = setInterval(() => {
+  S.cd = setInterval(() => {
     n--;
     if(n > 0){ cd.querySelector('.n').textContent = n; Snd.se('cd'); }
     else if(n === 0){ cd.querySelector('.n').textContent = 'GO!'; Snd.se('go'); }
     else {
-      clearInterval(t);
+      clearInterval(S.cd); S.cd = null;
       cd.style.display = 'none';
       runGame();
     }
@@ -811,13 +858,13 @@ function runGame(){
 /* 時計を動かす。止めたあと（食道の解説・×の確認）も ここから 同じ残り時間で 再開する */
 function startTicker(){
   const st = STAGES[S.si];
-  if(!st.time) return;                 // たからばこは 時間なし
   clearInterval(S.timer);
+  if(!st.time || !S.playing || hold.quit || hold.read) return;   // たからばこは 時間なし
   S.timer = setInterval(() => {
     S.time--;
     $('#time').textContent = Math.max(0, S.time);
     if(S.time <= 3) $('#clock').classList.add('warn');
-    if(S.time === Math.ceil((st.time + PLAYERS[S.player].bonusTime) * 0.5)) cheer('はんぶん すぎた！');
+    if(S.time === Math.ceil((st.time + bonusTime(st, PLAYERS[S.player])) * 0.5)) cheer('はんぶん すぎた！');
     if(S.time === 3) cheer('ラストスパート！');
     if(S.time <= 0) endGame();
   }, 1000);
@@ -836,7 +883,7 @@ function endGame(){
 /* ---------- リザルト ---------- */
 function showResult(){
   const st = STAGES[S.si], p = PLAYERS[S.player];
-  const bs = st.time ? p.bonusScore : 0;
+  const bs = bonusScore(st, p), bt = bonusTime(st, p);
   const total = S.score + bs;
   let up = 1;
   if(total > st.lvup[1]) up = 3; else if(total > st.lvup[0]) up = 2;
@@ -845,16 +892,19 @@ function showResult(){
   const rows = [];
   rows.push(st.hud.label + '<br><b>' + S.score + '</b> ' + st.hud.unit);
   if(bs > 0) rows.push(p.name + 'ボーナス： <b style="font-size:18px">+' + bs + '</b> ' + st.hud.unit);
-  if(st.time && p.bonusTime > 0) rows.push(p.name + 'ボーナス： <b style="font-size:18px">+' + p.bonusTime + '</b> 秒');
+  if(bt > 0) rows.push(p.name + 'ボーナス： <b style="font-size:18px">+' + bt + '</b> 秒');
   rows.push('レベル： <span class="hl">' + up + '＋Lv ↑↑</span>');
   rows.push('げんざいのレベル： <span class="hl">' + newLv + ' Lv</span>');
 
+  // 大腸は「クリアの線を こえたら 成功」と 説明している。とどかなかったときに クリアとは 出さない
+  const short = st.gauge && !$('#gauge').classList.contains('done');
+  $('#res-hd').textContent = short ? '★もう少し！★' : '★ミッションクリア★';
   $('#rows').innerHTML = rows.map(r => '<div class="row">' + r + '</div>').join('');
   show('#s-result');
   $$('#rows .row').forEach((el, i) => setTimeout(() => el.classList.add('on'), 400 + i*450));
   setTimeout(() => Snd.se('lv'), 400 + rows.length*450);
   S.lv = newLv;
-  S.log[S.si] = { score: S.score, up: up };
+  savePut({ player: S.player, lv: S.lv, done: S.si });
 }
 
 /* ---------- ぼうけんの書 ---------- */
@@ -909,9 +959,9 @@ const RANKS = [
 ];
 const KEYWORD = [
   'アミラーゼが デンプンを 分解',
-  '消化管は 口から こう門まで 1本',
+  '消化管は 口から こう門まで １本',
   '胃液の ペプシンが タンパク質に',
-  'すい液は 3つの養分に、胆汁は 脂肪に',
+  'すい液は ３つの養分に、胆汁は 脂肪に',
   '養分は 毛細血管と リンパ管へ',
   '水分の 一部を 吸収する',
   '養分は 血管を 通って 全身へ'
@@ -925,28 +975,35 @@ function toEnding(){
     STAGES.map((st, i) => '<div><b>' + st.n + '. ' + st.name + '</b>　' + KEYWORD[i] + '</div>').join('');
   show('#s-ending');
   Snd.se('lv');
+  saveClear();                         // 最後まで 行ったら つづきは ない
 }
-$('#btn-again').onclick = () => { S.lv = 1; S.si = 0; S.log = []; toMove(-1); };
+$('#btn-again').onclick = () => { S.lv = 1; S.si = 0; toMove(-1); };
 
 /* ---------- しまう ---------- */
-/* 右上の × は、1タップで もどると それまでのレベルが 消える。
-   ゲーム中なら 時計を止めてから たずね、「つづける」で 同じ残り時間から 再開する */
-let pausedGame = false;
+/* 右上の × は、1タップで もどると それまでのレベルが 消える。だから 先に たずねる。
+   たずねているあいだは 時計と カウントダウンを 止める（ゲームの中身は そのまま）。
+   「つづける」で 同じ残り時間から、カウントダウン中だったなら 3 から やりなおす */
+let cdStopped = false;
 $('#quit').onclick = () => {
-  pausedGame = S.playing;
-  if(S.playing){ S.playing = false; clearInterval(S.timer); if(curGame) curGame.stop(); }
+  hold.quit = true;
+  clearInterval(S.timer);
+  if(S.cd){ clearInterval(S.cd); S.cd = null; cdStopped = true; }
   $('#quitask').classList.add('on');
 };
 $('#quit-no').onclick = () => {
   $('#quitask').classList.remove('on');
-  if(pausedGame){ pausedGame = false; runGame(); }
+  hold.quit = false;
+  if(cdStopped){ cdStopped = false; countdown(); }
+  else startTicker();
 };
 $('#quit-yes').onclick = () => {
   $('#quitask').classList.remove('on');
-  pausedGame = false;
-  clearInterval(S.cd); clearTimeout(S.resT);          // カウントダウン・結果待ちも 止める
+  hold.quit = false; hold.read = false; cdStopped = false;
+  if(S.playing){ S.playing = false; if(curGame) curGame.stop(); }
+  clearInterval(S.timer); clearInterval(S.cd); S.cd = null;
+  clearTimeout(S.resT);                                // 結果待ちも 止める
   $('#countdown').style.display = 'none';
-  show('#s-title');
+  toTitle();                           // 保存があれば「つづきから」を 出す
 };
 </script>
 </body>
